@@ -181,7 +181,7 @@ export default function Home() {
             <View style={s.petImageWrap}>
               {/* Put your asset at app/assets/pet.png (or change the path) */}
               <Image
-                source={require("./assets/icon128.png")}
+                source={require("../assets/images/icon128.png")}
                 style={s.petImage}
                 accessible
                 accessibilityLabel="Virtual pet"
