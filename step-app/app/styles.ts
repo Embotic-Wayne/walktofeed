@@ -162,7 +162,7 @@ export const s = StyleSheet.create({
 
   // Shop
   shopScreen: { flex: 1, backgroundColor: colors.bg, alignItems: "center", justifyContent: "center", padding: 24 },
-  shopTitle: { fontSize: 28, fontWeight: "700", marginBottom: 20, color: colors.text },
+  shopTitle: { fontSize: 28, fontWeight: "700", marginBottom: 20, color: colors.text, textAlign: "center" },
   shopPoints: { fontSize: 16, color: colors.text, textAlign: "center", marginBottom: 20 },
   grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 16 },
   foodCard: {

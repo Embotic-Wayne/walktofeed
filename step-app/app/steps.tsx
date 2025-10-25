@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { SafeAreaView, Text, View, Pressable, Image } from "react-native";
 import { Pedometer } from "expo-sensors";
 import { s, colors } from "./styles";
+import { router } from "expo-router";
 
 const SERVER = "http://172.20.10.5:3000/steps";
 
@@ -145,7 +146,7 @@ export default function Home() {
             })}
           </View>
 
-          <View style={{ marginTop: 40, alignItems: "center" }}>
+          <View style={{ marginTop: 8, alignItems: "center" }}>
             <Pressable onPress={() => setShowFoodMenu(false)} style={s.btn}>
               <Text style={s.btnText}>⬅️ Back</Text>
             </Pressable>
@@ -154,7 +155,7 @@ export default function Home() {
 
         {/* Bottom nav */}
         <View style={s.navBar}>
-          <Pressable style={s.navBtn} onPress={() => setShowFoodMenu(false)}>
+          <Pressable style={s.navBtn} onPress={() => router.push('/')}>
             <Text style={{ color: "white", fontWeight: "700" }}>🏠</Text>
           </Pressable>
           <Pressable style={s.navBtn} onPress={() => setShowFoodMenu(true)}>
@@ -232,7 +233,7 @@ export default function Home() {
 
       {/* Bottom nav */}
       <View style={s.navBar}>
-        <Pressable style={s.navBtn} onPress={() => setShowFoodMenu(false)}>
+        <Pressable style={s.navBtn} onPress={() => router.push('/')}>
           <Text style={{ color: "white", fontWeight: "700" }}>🏠</Text>
         </Pressable>
         <Pressable style={s.navBtn} onPress={() => setShowFoodMenu(true)}>
