@@ -30,7 +30,20 @@ export default function Stats() {
     })();
   }, []);
 
-  const labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  // === 🧭 Day rotation logic ===
+  const allLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const todayIndex = new Date().getDay(); // 0 = Sunday, 6 = Saturday
+
+  // Rotate labels and data so the week ends on today
+  const labels = [
+    ...allLabels.slice(todayIndex + 1),
+    ...allLabels.slice(0, todayIndex + 1),
+  ];
+
+  const rotatedSteps = [
+    ...parsedWeeklySteps.slice(todayIndex + 1),
+    ...parsedWeeklySteps.slice(0, todayIndex + 1),
+  ];
 
   return (
     <SafeAreaView style={{ flex: 1, padding: 16, backgroundColor: "#eef2f7" }}>
