@@ -1,8 +1,30 @@
 // app/index.tsx
+import { useEffect, useState } from "react";
 import { SafeAreaView, View, Text, Pressable } from 'react-native';
 import { router } from 'expo-router';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Home() {
+  const [hasPet, setHasPet] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    // Check if a pet has already been selected
+    (async () => {
+      const chosenPet = await AsyncStorage.getItem("selectedPet");
+      setHasPet(!!chosenPet);
+    })();
+  }, []);
+
+  async function handleOpenSteps() {
+    if (!hasPet) {
+      // Redirect to choose pet screen if no pet selected
+      router.push("/choosepet");
+    } else {
+      // Redirect to steps screen
+      router.push("/steps");
+    }
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, padding: 24, backgroundColor: '#eef2f7' }}>
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
@@ -14,7 +36,7 @@ export default function Home() {
         </Text>
 
         <Pressable
-          onPress={() => router.push('/personalize')}
+          onPress={handleOpenSteps}
           style={({ pressed }) => ({
             backgroundColor: '#111827',
             paddingVertical: 14,
