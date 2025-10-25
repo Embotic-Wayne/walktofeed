@@ -1,5 +1,4 @@
 import { SafeAreaView, View, Text, Pressable, Image } from "react-native";
-import { useState } from "react";
 import { useRouter } from "expo-router";
 import { s } from "./styles"; // adjust path if needed
 
@@ -13,8 +12,9 @@ export default function ChoosePet() {
   const router = useRouter();
 
   function selectPet(petId: string) {
-    // TODO: save to AsyncStorage later
-    router.replace("/steps");
+    // TODO: save pet selection to AsyncStorage later
+    console.log("Selected pet:", petId);
+    router.push("/personalize");
   }
 
   return (

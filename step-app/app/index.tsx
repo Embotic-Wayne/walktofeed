@@ -14,7 +14,7 @@ export default function Home() {
         </Text>
 
         <Pressable
-          onPress={() => router.push('/steps')}
+          onPress={() => router.push('/personalize')}
           style={({ pressed }) => ({
             backgroundColor: '#111827',
             paddingVertical: 14,
