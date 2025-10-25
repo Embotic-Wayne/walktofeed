@@ -102,11 +102,58 @@ export default function Home() {
   };
 
   const percent = goal > 0 ? Math.min(100, Math.round((todaySteps / goal) * 100)) : 0;
-
+  
   return (
-    <SafeAreaView style={{ flex: 1, alignItems: "center", justifyContent: "flex-end", padding: 24, backgroundColor: "#eef2f7" }}>
-      <View style={{ width: "92%", maxWidth: 720, backgroundColor: "#f8fafc", borderRadius: 20, padding: 20, shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 12 }}>
-        <Text style={{ fontSize: 24, fontWeight: "600" }}>Today's Available Steps: {todaySteps.toLocaleString()}</Text>
+  <SafeAreaView style={{ flex: 1, backgroundColor: "#eef2f7" }}>
+  
+    {/* 🔹 TOP CARD SECTION */}
+    <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <View
+        style={{
+          height: "105%",
+          width: "105%",
+          maxWidth: 720,
+          backgroundColor: "#f8fafc",
+          borderRadius: 20,
+          padding: 20,
+          shadowColor: "#000",
+          shadowOpacity: 0.08,
+          shadowRadius: 12,
+        }}
+      >
+        <Text style={{ fontSize: 32, fontWeight: "700", textAlign: "center" }}>
+          This is where the pet goes
+        </Text>
+        <Text style={{ fontSize: 16, color: "#64748b", marginTop: 8, textAlign: "center" }}>
+          Steps fuel your pet’s happiness!
+        </Text>
+      </View>
+    </View>
+
+    {/* 🔹 BOTTOM CARD SECTION */}
+    <SafeAreaView
+      style={{
+        alignItems: "center",
+        justifyContent: "flex-end",
+        padding: 24,
+        backgroundColor: "#eef2f7",
+      }}
+    >
+      <View
+        style={{
+          width: "92%",
+          maxWidth: 720,
+          backgroundColor: "#f8fafc",
+          borderRadius: 20,
+          padding: 20,
+          shadowColor: "#000",
+          shadowOpacity: 0.08,
+          shadowRadius: 12,
+        }}
+      >
+        <Text style={{ fontSize: 24, fontWeight: "600" }}>
+          Today's Available Steps: {todaySteps.toLocaleString()}
+        </Text>
 
         {/* Hunger Points Display */}
         <View style={{ marginTop: 6 }}>
@@ -117,44 +164,49 @@ export default function Home() {
 
         {/* Hunger Level Bar */}
         <View style={{ marginTop: 6 }}>
-          <Text style={{ fontSize: 16, fontWeight: "600", marginBottom: 5, color: hungerBarColor() }}>
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: "600",
+              marginBottom: 5,
+              color: hungerBarColor(),
+            }}
+          >
             Hunger Level: {Math.round(hungerLevel)}%
           </Text>
-          <View style={{ width: "100%", height: 12, backgroundColor: "#c9c9c9ff", borderRadius: 999, overflow: "hidden" }}>
-            <View style={{ 
-              width: `${Math.max(0, Math.min(100, hungerLevel))}%`, 
-              height: "100%", 
-              backgroundColor: hungerBarColor()
-            }} />
+          <View
+            style={{
+              width: "100%",
+              height: 12,
+              backgroundColor: "#c9c9c9ff",
+              borderRadius: 999,
+              overflow: "hidden",
+            }}
+          >
+            <View
+              style={{
+                width: `${Math.max(0, Math.min(100, hungerLevel))}%`,
+                height: "100%",
+                backgroundColor: hungerBarColor(),
+              }}
+            />
           </View>
         </View>
 
         {/* Feed Button */}
         <View style={{ marginTop: 15, alignItems: "center" }}>
-          <Button 
-            label={`Feed (Cost: 10 points)`} 
-            onPress={feedWithHungerPoints}
-          />
+          <Button label={`Feed (Cost: 10 points)`} onPress={feedWithHungerPoints} />
           {hungerPoints < 10 && (
             <Text style={{ color: "#64748b", fontSize: 12, marginTop: 5 }}>
               Need 10 hunger points to feed
             </Text>
           )}
         </View>
-
-        <View style={{ marginTop: 12 }}>
-          <Text style={{ color: "#64748b" }}>
-            Phone and PC must be on the same Wi-Fi. Data posts whenever steps change.
-          </Text>
-          {Platform.OS === "ios" && (
-            <Text style={{ color: "#64748b", marginTop: 6 }}>
-              iOS may ask for “Motion & Fitness”—please allow.
-            </Text>
-          )}
-        </View>
       </View>
     </SafeAreaView>
-  );
+  </SafeAreaView>
+);
+
 }
 
 // Tiny button helper
