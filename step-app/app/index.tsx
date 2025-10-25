@@ -10,7 +10,7 @@ const SERVER = "http://172.20.10.5:3000/steps";
 const ProgressBar = memo(({ percent }: { percent: number }) => {
   const p = Math.max(0, Math.min(100, isFinite(percent) ? percent : 0));
   return (
-    <View style={{ width: "100%", height: 18, backgroundColor: "#e5e7eb", borderRadius: 999, overflow: "hidden", marginTop: 10 }}>
+    <View style={{ width: "100%", height: 8, backgroundColor: "#e5e7eb", borderRadius: 999, overflow: "hidden", marginTop: 10 }}>
       <View style={{ width: `${p}%`, height: "100%", backgroundColor: "#111827" }} />
     </View>
   );
@@ -82,13 +82,9 @@ export default function Home() {
   const percent = goal > 0 ? Math.min(100, Math.round((todaySteps / goal) * 100)) : 0;
 
   return (
-    <SafeAreaView style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24, backgroundColor: "#eef2f7" }}>
+    <SafeAreaView style={{ flex: 1, alignItems: "center", justifyContent: "flex-end", padding: 24, backgroundColor: "#eef2f7" }}>
       <View style={{ width: "92%", maxWidth: 720, backgroundColor: "#f8fafc", borderRadius: 20, padding: 20, shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 12 }}>
-        <Text style={{ fontSize: 28, fontWeight: "700" }}>Today’s Steps</Text>
-
-        <Text style={{ fontSize: 64, marginTop: 6, fontWeight: "800" }}>
-          {todaySteps.toLocaleString()}
-        </Text>
+        <Text style={{ fontSize: 24, fontWeight: "600" }}>Today’s Steps: {todaySteps.toLocaleString()}</Text>
 
         {/* Goal row */}
         <View style={{ marginTop: 10, flexDirection: "row", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
@@ -103,15 +99,6 @@ export default function Home() {
 
         {/* Progress bar */}
         <ProgressBar percent={percent} />
-
-        {/* Controls */}
-        <View style={{ marginTop: 14, flexDirection: "row", gap: 10 }}>
-          <Button label="-500" onPress={() => adjustGoal(-500)} />
-          <Button label="-100" onPress={() => adjustGoal(-100)} />
-          <Button label="+100" onPress={() => adjustGoal(+100)} />
-          <Button label="+500" onPress={() => adjustGoal(+500)} />
-          <Button label="Reset 10k" onPress={() => setGoal(10000)} />
-        </View>
 
         <View style={{ marginTop: 12 }}>
           <Text style={{ color: "#64748b" }}>
