@@ -161,7 +161,12 @@ export default function Home() {
           <Pressable style={s.navBtn} onPress={() => setShowFoodMenu(true)}>
             <Text style={{ color: "white", fontWeight: "700" }}>🛒</Text>
           </Pressable>
-          <Pressable style={s.navBtn} onPress={() => {}}>
+          <Pressable
+            style={s.navBtn}
+            onPress={() => {
+            console.log("Graph button pressed");
+            router.push("/stats");
+            }}>
             <Text style={{ color: "white", fontWeight: "700" }}>📊</Text>
           </Pressable>
         </View>
