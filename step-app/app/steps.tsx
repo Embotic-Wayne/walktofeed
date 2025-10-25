@@ -192,17 +192,26 @@ export default function Home() {
         </View>
 
         {/* Steps / hunger card */}
+        <View
+          style={{
+          position: "absolute",
+          bottom: 0, // distance from bottom (adjust freely)
+          left: 15,
+          right: 15,
+          alignItems: "center", // centers horizontally
+        }}
+>
         <View style={s.stepsCard}>
           <Text style={s.stepsTitle}>
-            Today&apos;s Available Steps: {todaySteps.toLocaleString()}
+            Today&apos;s Steps: {todaySteps.toLocaleString()}
           </Text>
 
           <View style={{ marginTop: 6 }}>
-            <Text style={s.label}>Hunger Points: {hungerPoints}</Text>
+            <Text style={s.label}>Available Hunger Points: {hungerPoints}</Text>
           </View>
 
           <View style={{ marginTop: 6 }}>
-            <Text style={[s.label, { color: hungerColor, marginBottom: 5 }]}>
+            <Text style={[s.label, { color: hungerColor, marginBottom: 6 }]}>
               Hunger Level: {Math.round(hungerLevel)}%
             </Text>
             <View style={s.barWrap}>
@@ -217,14 +226,8 @@ export default function Home() {
               />
             </View>
           </View>
-
-          <View style={{ marginTop: 15, alignItems: "center" }}>
-            <Pressable onPress={() => setShowFoodMenu(true)} style={s.btn}>
-              <Text style={s.btnText}>Food Store 🧺</Text>
-            </Pressable>
-            {hungerPoints < 10 && <Text style={s.hint}>Need 10 hunger points to feed</Text>}
-          </View>
         </View>
+      </View>
       </View>
 
       {/* Bottom nav */}

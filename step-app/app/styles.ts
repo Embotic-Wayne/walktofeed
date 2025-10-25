@@ -38,7 +38,8 @@ export const s = StyleSheet.create({
     marginBottom: 20,
   },
   petCard: {
-    width: "100%",
+    height: "86%",
+    width: "102%",
     backgroundColor: colors.card,
     borderRadius: 40,
     paddingVertical: 16,
