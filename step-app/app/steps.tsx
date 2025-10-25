@@ -1,31 +1,39 @@
-// app/index.tsx
 import { useEffect, useRef, useState } from "react";
-import { Platform, SafeAreaView, Text, View, Pressable } from "react-native";
+import { SafeAreaView, Text, View, Pressable } from "react-native";
 import { Pedometer } from "expo-sensors";
+import { s, colors } from "./styles"; // ⬅️ NEW
 
-// ⚠️ Your PC's IPv4 (same Wi-Fi as phone)
 const SERVER = "http://172.20.10.5:3000/steps";
 
 export default function Home() {
   const [todaySteps, setTodaySteps] = useState<number>(0);
-  const [goal, setGoal] = useState<number>(10000);  // default goal
-  const [hungerLevel, setHungerLevel] = useState<number>(100); // Start at 100%
+  const [goal, setGoal] = useState<number>(10000);
+  const [hungerLevel, setHungerLevel] = useState<number>(100);
   const [hungerPoints, setHungerPoints] = useState<number>(0);
   const lastSent = useRef<number>(0);
-  const hungerTimer = useRef<number | null>(null);
+  const hungerTimer = useRef<ReturnType<typeof setInterval> | null>(null); // ⬅️ safer type
   const [showFoodMenu, setShowFoodMenu] = useState(false);
 
-  // Hunger timer effect - decreases hunger over time
+  const FOODS = [
+    { name: "Apple 🍎", price: 5, gain: 5 },
+    { name: "Cookie 🍪", price: 15, gain: 15 },
+    { name: "Fish 🐟", price: 25, gain: 25 },
+    { name: "Cake 🎂", price: 50, gain: 50 },
+    { name: "Chicken 🍗", price: 75, gain: 75 },
+    { name: "Steak 🥩", price: 100, gain: 100 },
+  ];
+
+  function buyFood(food: { name: string; price: number; gain: number }) {
+    if (hungerPoints < food.price || hungerLevel >= 100) return;
+    setHungerPoints(p => p - food.price);
+    setHungerLevel(h => Math.min(100, h + food.gain));
+  }
+
   useEffect(() => {
     hungerTimer.current = setInterval(() => {
-      setHungerLevel(prev => Math.max(0, prev - 0.1)); // Decrease by 0.1% every second, change later
+      setHungerLevel(prev => Math.max(0, prev - 0.1));
     }, 1000);
-
-    return () => {
-      if (hungerTimer.current) {
-        clearInterval(hungerTimer.current);
-      }
-    };
+    return () => { if (hungerTimer.current) clearInterval(hungerTimer.current); };
   }, []);
 
   useEffect(() => {
@@ -34,31 +42,22 @@ export default function Home() {
 
     (async () => {
       const available = await Pedometer.isAvailableAsync();
-      if (!available) {
-        console.warn("Pedometer not available on this device.");
-        return;
-      }
+      if (!available) return;
 
-      const startOfDay = new Date();
-      startOfDay.setHours(0, 0, 0, 0);
-
+      const startOfDay = new Date(); startOfDay.setHours(0, 0, 0, 0);
       try {
         const result = await Pedometer.getStepCountAsync(startOfDay, new Date());
         const initial = result?.steps ?? 0;
         if (mounted) {
           setTodaySteps(initial);
-          // Convert steps to hunger points (1 step = 0.1 hunger point)
           setHungerPoints(Math.floor(initial * 0.1));
         }
         postSteps(initial);
-      } catch (e) {
-        console.warn("getStepCountAsync error", e);
-      }
+      } catch {}
 
       sub = Pedometer.watchStepCount(({ steps }: { steps: number }) => {
         setTodaySteps(prev => {
           const next = (prev || 0) + (steps || 0);
-          // Update hunger points based on new steps
           setHungerPoints(Math.floor(next * 0.1));
           postSteps(next);
           return next;
@@ -66,15 +65,12 @@ export default function Home() {
       });
     })();
 
-    return () => {
-      mounted = false;
-      sub?.remove?.();
-    };
+    return () => { mounted = false; sub?.remove?.(); };
   }, []);
 
   async function postSteps(steps: number) {
     const now = Date.now();
-    if (now - lastSent.current < 2000) return; // throttle ~2s
+    if (now - lastSent.current < 2000) return;
     lastSent.current = now;
     try {
       await fetch(SERVER, {
@@ -82,218 +78,110 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ steps }),
       });
-    } catch (e: any) {
-      if (__DEV__) console.log("POST failed:", e?.message);
-    }
+    } catch {}
   }
 
-  // --- Color of hunger level ---
-  const hungerBarColor = () => {
-    if (hungerLevel > 70) return "#41e321ff"
-    else if (hungerLevel < 30) return "#dc2626"
-    else return "#ecc607ff"
-  }
+  const hungerBarColor = () =>
+    hungerLevel > 70 ? colors.success : hungerLevel < 30 ? colors.danger : colors.warn;
 
-  // --- Hunger controls ---
-  const feedWithHungerPoints = () => {
-    if (hungerPoints >= 10) { // Cost 10 hunger points to increase hunger by 10%
-      setHungerPoints(prev => prev - 10);
-      setHungerLevel(prev => Math.min(100, prev + 10));
-    }
-  }
-
-  // --- Food Store ---
-  const foodMenu = () => {
-    setShowFoodMenu(true);
-  }
+  const foodMenu = () => setShowFoodMenu(true);
 
   if (showFoodMenu) {
-  // 🧺 Food Store Screen
-  return (
-    <SafeAreaView
-      style={{
-        flex: 1,
-        backgroundColor: "#eef2f7",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 24,
-      }}
-    >
-      <Text style={{ fontSize: 28, fontWeight: "700", marginBottom: 20 }}>🧺 Food Store</Text>
-      <Text style={{ fontSize: 16, color: "#000000ff", textAlign: "center", marginBottom: 20 }}>
-        Available Hunger Points: {hungerPoints}
-      </Text>
-      {/* Grid of 6 Boxes */}
-      <View
-        style={{
-          flexDirection: "row",
-          flexWrap: "wrap",
-          justifyContent: "center",
-          gap: 16,
-        }}
-      >
-        {[
-          { name: "Apple 🍎", price: 5 },
-          { name: "Cookie 🍪", price: 15 },
-          { name: "Fish 🐟", price: 25 },
-          { name: "Cake 🎂", price: 50 },
-          { name: "Chicken 🍗", price: 75 },
-          { name: "Steak 🥩", price: 100 },
-        ].map((food, index) => (
-          <View
-            key={index}
-            style={{
-            width: 115,
-            height: 150,
-            backgroundColor: "#f8fafc",
-            borderRadius: 16,
-            justifyContent: "center",
-            alignItems: "center",
-            shadowColor: "#000",
-            shadowOpacity: 0.08,
-            shadowRadius: 6,
-            padding: 8,
-          }}
-        >
-          <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 4 }}>
-            {food.name}
-          </Text>
-          <Text style={{ fontSize: 14, color: "#64748b", fontWeight: "500" }}>
-            {food.price} Points
-          </Text>
-        </View>
-      ))}
-      </View>
+    // Food Store
+    return (
+      <SafeAreaView style={s.shopScreen}>
+        <Text style={s.shopTitle}>🧺 Food Store</Text>
+        <Text style={s.shopPoints}>Available Hunger Points: {hungerPoints}</Text>
 
-      {/* Back Button */}
-      <View style={{ marginTop: 40 }}>
-        <Button label="⬅️ Back" onPress={() => setShowFoodMenu(false)} />
-      </View>
-    </SafeAreaView>
-  );
-}
+        <View style={s.grid}>
+          {FOODS.map((food, index) => {
+            const affordable = hungerPoints >= food.price;
+            const full = hungerLevel >= 100;
+            const disabled = !affordable || full;
 
-  const percent = goal > 0 ? Math.min(100, Math.round((todaySteps / goal) * 100)) : 0;
-  
-  return (
-  <SafeAreaView style={{ flex: 1, backgroundColor: "#eef2f7" }}>
-  
-    {/* 🔹 TOP CARD SECTION */}
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
-      <View
-        style={{
-          height: "105%",
-          width: "105%",
-          maxWidth: 720,
-          backgroundColor: "#f8fafc",
-          borderRadius: 20,
-          padding: 20,
-          shadowColor: "#000",
-          shadowOpacity: 0.08,
-          shadowRadius: 12,
-        }}
-      >
-        <Text style={{ fontSize: 32, fontWeight: "700", textAlign: "center" }}>
-          This is where the pet goes
-        </Text>
-        <Text style={{ fontSize: 16, color: "#64748b", marginTop: 8, textAlign: "center" }}>
-          Steps fuel your pet’s happiness!
-        </Text>
-      </View>
-    </View>
-
-    {/* 🔹 BOTTOM CARD SECTION */}
-    <SafeAreaView
-      style={{
-        alignItems: "center",
-        justifyContent: "flex-end",
-        padding: 24,
-        backgroundColor: "#eef2f7",
-      }}
-    >
-      <View
-        style={{
-          width: "92%",
-          maxWidth: 720,
-          backgroundColor: "#f8fafc",
-          borderRadius: 20,
-          padding: 20,
-          shadowColor: "#000",
-          shadowOpacity: 0.08,
-          shadowRadius: 12,
-        }}
-      >
-        <Text style={{ fontSize: 24, fontWeight: "600" }}>
-          Today's Available Steps: {todaySteps.toLocaleString()}
-        </Text>
-
-        {/* Hunger Points Display */}
-        <View style={{ marginTop: 6 }}>
-          <Text style={{ fontSize: 16, fontWeight: "600", color: "#000000ff" }}>
-            Hunger Points: {hungerPoints}
-          </Text>
+            return (
+              <Pressable
+                key={index}
+                onPress={() => buyFood(food)}
+                disabled={disabled}
+                style={({ pressed }) => [
+                  s.foodCard,
+                  {
+                    opacity: disabled ? 0.5 : pressed ? 0.85 : 1,
+                    borderWidth: affordable ? 0 : 1,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                <Text style={s.foodName}>{food.name}</Text>
+                <Text style={s.foodMeta}>{food.price} pts • +{food.gain}%</Text>
+                {!affordable && (
+                  <Text style={{ marginTop: 6, fontSize: 12, color: "#9ca3af" }}>Not enough</Text>
+                )}
+                {full && (
+                  <Text style={{ marginTop: 6, fontSize: 12, color: "#9ca3af" }}>Pet is full</Text>
+                )}
+              </Pressable>
+            );
+          })}
         </View>
 
-        {/* Hunger Level Bar */}
-        <View style={{ marginTop: 6 }}>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: "600",
-              marginBottom: 5,
-              color: hungerBarColor(),
-            }}
-          >
-            Hunger Level: {Math.round(hungerLevel)}%
+        <View style={{ marginTop: 40 }}>
+          <Pressable onPress={() => setShowFoodMenu(false)} style={s.btn}>
+            <Text style={s.btnText}>⬅️ Back</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Main screen
+  return (
+    <SafeAreaView style={s.screen}>
+      {/* Top card */}
+      <View style={s.sectionTop}>
+        <View style={s.petCard}>
+          <Text style={s.petTitle}>This is where the pet goes</Text>
+          <Text style={s.petSub}>Steps fuel your pet’s happiness!</Text>
+        </View>
+      </View>
+
+      {/* Bottom card */}
+      <SafeAreaView style={s.sectionBottom}>
+        <View style={s.stepsCard}>
+          <Text style={s.stepsTitle}>
+            Today&apos;s Available Steps: {todaySteps.toLocaleString()}
           </Text>
-          <View
-            style={{
-              width: "100%",
-              height: 12,
-              backgroundColor: "#c9c9c9ff",
-              borderRadius: 999,
-              overflow: "hidden",
-            }}
-          >
-            <View
-              style={{
-                width: `${Math.max(0, Math.min(100, hungerLevel))}%`,
-                height: "100%",
-                backgroundColor: hungerBarColor(),
-              }}
-            />
+
+          <View style={{ marginTop: 6 }}>
+            <Text style={s.label}>Hunger Points: {hungerPoints}</Text>
+          </View>
+
+          <View style={{ marginTop: 6 }}>
+            <Text style={[s.label, { color: hungerBarColor(), marginBottom: 5 }]}>
+              Hunger Level: {Math.round(hungerLevel)}%
+            </Text>
+            <View style={s.barWrap}>
+              <View
+                style={[
+                  s.barFill,
+                  {
+                    width: `${Math.max(0, Math.min(100, hungerLevel))}%`,
+                    backgroundColor: hungerBarColor(),
+                  },
+                ]}
+              />
+            </View>
+          </View>
+
+          <View style={{ marginTop: 15, alignItems: "center" }}>
+            <Pressable onPress={foodMenu} style={s.btn}>
+              <Text style={s.btnText}>Food Store 🧺</Text>
+            </Pressable>
+            {hungerPoints < 10 && <Text style={s.hint}>Need 10 hunger points to feed</Text>}
           </View>
         </View>
-
-        {/* Feed Button */}
-        <View style={{ marginTop: 15, alignItems: "center" }}>
-          <Button label={`Food Store 🧺`} onPress={foodMenu} />
-          {hungerPoints < 10 && (
-            <Text style={{ color: "#64748b", fontSize: 12, marginTop: 5 }}>
-              Need 10 hunger points to feed
-            </Text>
-          )}
-        </View>
-      </View>
+      </SafeAreaView>
     </SafeAreaView>
-  </SafeAreaView>
-  );
-}
-
-// Tiny button helper
-function Button({ label, onPress }: { label: string; onPress: () => void }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => ({
-        backgroundColor: "#111827",
-        paddingVertical: 10,
-        paddingHorizontal: 14,
-        borderRadius: 12,
-        opacity: pressed ? 0.8 : 1,
-      })}
-    >
-      <Text style={{ color: "white", fontWeight: "700" }}>{label}</Text>
-    </Pressable>
   );
 }
