@@ -19,12 +19,14 @@ export default function Home() {
 
   // 🔹 Added: state for chosen pet image
   const [petImage, setPetImage] = useState<any>(null);
+  const [petName, setPetName] = useState<string | null>(null);
 
   // 🔹 Load selected pet image from AsyncStorage
   useEffect(() => {
     async function loadPetImage() {
       try {
         const petId = await AsyncStorage.getItem("selectedPet");
+        const name = await AsyncStorage.getItem("petName"); // load name
         if (petId) {
           const petImages: Record<string, any> = {
             cat: require("../assets/images/cat.png"),
@@ -33,6 +35,7 @@ export default function Home() {
           };
           setPetImage(petImages[petId]);
         }
+        if (name) setPetName(name);
       } catch (err) {
         console.error("Error loading pet image:", err);
       }
@@ -236,7 +239,7 @@ export default function Home() {
         {/* Pet card */}
         <View style={s.sectionTop}>
           <View style={s.petCard}>
-            <Text style={s.petTitle}>Your Pet</Text>
+            <Text style={s.petTitle}>{petName || "Your Pet"}</Text>
 
             <View style={s.petImageWrap}>
               {petImage ? (
