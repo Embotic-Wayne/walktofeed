@@ -13,11 +13,12 @@ export default function Home() {
   const [hungerPoints, setHungerPoints] = useState<number>(0);
   const lastSent = useRef<number>(0);
   const hungerTimer = useRef<number | null>(null);
+  const [showFoodMenu, setShowFoodMenu] = useState(false);
 
   // Hunger timer effect - decreases hunger over time
   useEffect(() => {
     hungerTimer.current = setInterval(() => {
-      setHungerLevel(prev => Math.max(0, prev - 0.1)); // Decrease by 0.1% every second
+      setHungerLevel(prev => Math.max(0, prev - 0.1)); // Decrease by 0.1% every second, change later
     }, 1000);
 
     return () => {
@@ -99,7 +100,78 @@ export default function Home() {
       setHungerPoints(prev => prev - 10);
       setHungerLevel(prev => Math.min(100, prev + 10));
     }
-  };
+  }
+
+  // --- Food Store ---
+  const foodMenu = () => {
+    setShowFoodMenu(true);
+  }
+
+  if (showFoodMenu) {
+  // 🧺 Food Store Screen
+  return (
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: "#eef2f7",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 24,
+      }}
+    >
+      <Text style={{ fontSize: 28, fontWeight: "700", marginBottom: 20 }}>🧺 Food Store</Text>
+      <Text style={{ fontSize: 16, color: "#000000ff", textAlign: "center", marginBottom: 20 }}>
+        Available Hunger Points: {hungerPoints}
+      </Text>
+      {/* Grid of 6 Boxes */}
+      <View
+        style={{
+          flexDirection: "row",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          gap: 16,
+        }}
+      >
+        {[
+          { name: "Apple 🍎", price: 5 },
+          { name: "Cookie 🍪", price: 15 },
+          { name: "Fish 🐟", price: 25 },
+          { name: "Cake 🎂", price: 50 },
+          { name: "Chicken 🍗", price: 75 },
+          { name: "Steak 🥩", price: 100 },
+        ].map((food, index) => (
+          <View
+            key={index}
+            style={{
+            width: 115,
+            height: 150,
+            backgroundColor: "#f8fafc",
+            borderRadius: 16,
+            justifyContent: "center",
+            alignItems: "center",
+            shadowColor: "#000",
+            shadowOpacity: 0.08,
+            shadowRadius: 6,
+            padding: 8,
+          }}
+        >
+          <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 4 }}>
+            {food.name}
+          </Text>
+          <Text style={{ fontSize: 14, color: "#64748b", fontWeight: "500" }}>
+            {food.price} Points
+          </Text>
+        </View>
+      ))}
+      </View>
+
+      {/* Back Button */}
+      <View style={{ marginTop: 40 }}>
+        <Button label="⬅️ Back" onPress={() => setShowFoodMenu(false)} />
+      </View>
+    </SafeAreaView>
+  );
+}
 
   const percent = goal > 0 ? Math.min(100, Math.round((todaySteps / goal) * 100)) : 0;
   
@@ -195,7 +267,7 @@ export default function Home() {
 
         {/* Feed Button */}
         <View style={{ marginTop: 15, alignItems: "center" }}>
-          <Button label={`Feed (Cost: 10 points)`} onPress={feedWithHungerPoints} />
+          <Button label={`Food Store 🧺`} onPress={foodMenu} />
           {hungerPoints < 10 && (
             <Text style={{ color: "#64748b", fontSize: 12, marginTop: 5 }}>
               Need 10 hunger points to feed
@@ -205,8 +277,7 @@ export default function Home() {
       </View>
     </SafeAreaView>
   </SafeAreaView>
-);
-
+  );
 }
 
 // Tiny button helper
