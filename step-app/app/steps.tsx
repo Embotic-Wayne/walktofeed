@@ -1,5 +1,5 @@
 // app/index.tsx
-import { useEffect, useRef, useState, memo } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Platform, SafeAreaView, Text, View, Pressable } from "react-native";
 import { Pedometer } from "expo-sensors";
 
