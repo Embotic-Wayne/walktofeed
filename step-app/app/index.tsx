@@ -6,16 +6,6 @@ import { Pedometer } from "expo-sensors";
 // ⚠️ Your PC's IPv4 (same Wi-Fi as phone)
 const SERVER = "http://172.20.10.5:3000/steps";
 
-// Simple progress bar
-const ProgressBar = memo(({ percent }: { percent: number }) => {
-  const p = Math.max(0, Math.min(100, isFinite(percent) ? percent : 0));
-  return (
-    <View style={{ width: "100%", height: 8, backgroundColor: "#e5e7eb", borderRadius: 999, overflow: "hidden", marginTop: 10 }}>
-      <View style={{ width: `${p}%`, height: "100%", backgroundColor: "#111827" }} />
-    </View>
-  );
-});
-
 export default function Home() {
   const [todaySteps, setTodaySteps] = useState<number>(0);
   const [goal, setGoal] = useState<number>(10000);  // default goal
@@ -96,10 +86,12 @@ export default function Home() {
     }
   }
 
-  // --- Goal controls ---
-  const adjustGoal = (delta: number) => {
-    setGoal(g => Math.max(100, Math.min(100_000, g + delta))); // clamp between 100 and 100k
-  };
+  // --- Color of hunger level ---
+  const hungerBarColor = () => {
+    if (hungerLevel > 70) return "#41e321ff"
+    else if (hungerLevel < 30) return "#dc2626"
+    else return "#ecc607ff"
+  }
 
   // --- Hunger controls ---
   const feedWithHungerPoints = () => {
@@ -116,37 +108,23 @@ export default function Home() {
       <View style={{ width: "92%", maxWidth: 720, backgroundColor: "#f8fafc", borderRadius: 20, padding: 20, shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 12 }}>
         <Text style={{ fontSize: 24, fontWeight: "600" }}>Today's Available Steps: {todaySteps.toLocaleString()}</Text>
 
-        {/* Goal row */}
-        <View style={{ marginTop: 10, flexDirection: "row", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <View style={{ paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999, backgroundColor: "#e2e8f0" }}>
-            <Text style={{ fontWeight: "600" }}>Goal: {goal.toLocaleString()}</Text>
-          </View>
-
-          <View style={{ paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999, backgroundColor: "#e2e8f0" }}>
-            <Text style={{ fontWeight: "600" }}>Progress: {percent}%</Text>
-          </View>
-        </View>
-
-        {/* Progress bar */}
-        <ProgressBar percent={percent} />
-
         {/* Hunger Points Display */}
-        <View style={{ marginTop: 20 }}>
-          <Text style={{ fontSize: 18, fontWeight: "600", color: "#dc2626" }}>
+        <View style={{ marginTop: 6 }}>
+          <Text style={{ fontSize: 16, fontWeight: "600", color: "#000000ff" }}>
             Hunger Points: {hungerPoints}
           </Text>
         </View>
 
         {/* Hunger Level Bar */}
-        <View style={{ marginTop: 10 }}>
-          <Text style={{ fontSize: 16, fontWeight: "600", marginBottom: 5 }}>
+        <View style={{ marginTop: 6 }}>
+          <Text style={{ fontSize: 16, fontWeight: "600", marginBottom: 5, color: hungerBarColor() }}>
             Hunger Level: {Math.round(hungerLevel)}%
           </Text>
-          <View style={{ width: "100%", height: 12, backgroundColor: "#fecaca", borderRadius: 999, overflow: "hidden" }}>
+          <View style={{ width: "100%", height: 12, backgroundColor: "#c9c9c9ff", borderRadius: 999, overflow: "hidden" }}>
             <View style={{ 
               width: `${Math.max(0, Math.min(100, hungerLevel))}%`, 
               height: "100%", 
-              backgroundColor: hungerLevel > 50 ? "#dc2626" : hungerLevel > 20 ? "#f59e0b" : "#ef4444"
+              backgroundColor: hungerBarColor()
             }} />
           </View>
         </View>
