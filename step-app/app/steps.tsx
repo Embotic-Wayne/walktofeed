@@ -4,6 +4,7 @@ import { SafeAreaView, Text, View, Pressable, Image } from "react-native";
 import { Pedometer } from "expo-sensors";
 import { s, colors } from "./styles";
 import { router } from "expo-router";
+import Stats from "./stats";
 
 const SERVER = "http://172.20.10.5:3000/steps";
 
@@ -24,6 +25,28 @@ export default function Home() {
     { name: "Chicken 🍗", price: 75,  gain: 75 },
     { name: "Steak 🥩",   price: 100, gain: 100 },
   ];
+  // --- steps.tsx ---
+
+async function getWeeklySteps(): Promise<number[]> {
+  const result: number[] = [];
+  const today = new Date();
+  for (let i = 6; i >= 0; i--) {
+    const day = new Date();
+    day.setDate(today.getDate() - i);
+    day.setHours(0, 0, 0, 0);
+
+    const nextDay = new Date(day);
+    nextDay.setDate(day.getDate() + 1);
+
+    try {
+      const res = await Pedometer.getStepCountAsync(day, nextDay);
+      result.push(res.steps ?? 0);
+    } catch {
+      result.push(0); // fallback
+    }
+  }
+  return result;
+}
 
   function buyFood(food: { name: string; price: number; gain: number }) {
     if (hungerPoints < food.price || hungerLevel >= 100) return;
@@ -163,12 +186,20 @@ export default function Home() {
           </Pressable>
           <Pressable
             style={s.navBtn}
-            onPress={() => {
-            console.log("Graph button pressed");
-            router.push("/stats");
+            onPress={async () => {
+              const weeklySteps = await getWeeklySteps(); // fetch last 7 days
+              router.push({
+              pathname: "/stats",
+              params: {
+                todaySteps,
+                weeklySteps: JSON.stringify(weeklySteps), // must stringify for router params
+                hungerLevel,
+              },
+              });
             }}>
-            <Text style={{ color: "white", fontWeight: "700" }}>📊</Text>
-          </Pressable>
+          <Text style={{ color: "white", fontWeight: "700" }}>📊</Text>
+        </Pressable>
+
         </View>
       </SafeAreaView>
     );
@@ -244,7 +275,19 @@ export default function Home() {
         <Pressable style={s.navBtn} onPress={() => setShowFoodMenu(true)}>
           <Text style={{ color: "white", fontWeight: "700" }}>🛒</Text>
         </Pressable>
-        <Pressable style={s.navBtn} onPress={() => {}}>
+         <Pressable
+            style={s.navBtn}
+            onPress={async () => {
+              const weeklySteps = await getWeeklySteps(); // fetch last 7 days
+              router.push({
+              pathname: "/stats",
+              params: {
+                todaySteps,
+                weeklySteps: JSON.stringify(weeklySteps), // must stringify for router params
+                hungerLevel,
+              },
+              });
+            }}>
           <Text style={{ color: "white", fontWeight: "700" }}>📊</Text>
         </Pressable>
       </View>

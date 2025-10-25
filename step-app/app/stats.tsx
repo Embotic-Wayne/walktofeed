@@ -1,22 +1,22 @@
-// stats.tsx
-import { useState } from "react";
-import { View, Text, SafeAreaView, Image, Dimensions } from "react-native";
+// app/stats.tsx
+import { useLocalSearchParams } from "expo-router";
+import { SafeAreaView, View, Text, Image, Dimensions } from "react-native";
 import { BarChart } from "react-native-chart-kit";
 
-// Wrap BarChart to satisfy TypeScript
-const MyBarChart: any = BarChart;
-
 export default function Stats() {
+  const { todaySteps, hungerLevel, weeklySteps } = useLocalSearchParams();
   const screenWidth = Dimensions.get("window").width - 32;
 
-  // Example data
-  const weeklySteps = [1200, 3400, 2800, 5000, 4300, 3900, 6100];
-  const todaySteps = 4300;
-  const hungerLevel = 75;
+  // Parse values from params
+  const parsedWeeklySteps: number[] = weeklySteps ? JSON.parse(weeklySteps as string) : [];
+  const parsedTodaySteps: number = todaySteps ? Number(todaySteps) : 0;
+  const parsedHungerLevel: number = hungerLevel ? Number(hungerLevel) : 0;
+
+  const labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   return (
     <SafeAreaView style={{ flex: 1, padding: 16, backgroundColor: "#eef2f7" }}>
-      {/* Pet image and status */}
+      {/* Pet image */}
       <View style={{ alignItems: "center", marginBottom: 20 }}>
         <Image
           source={require("./assets/icon128.png")}
@@ -27,8 +27,14 @@ export default function Stats() {
         </Text>
       </View>
 
-      {/* Two boxes side by side */}
-      <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 20 }}>
+      {/* Info boxes */}
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          marginBottom: 20,
+        }}
+      >
         <View
           style={{
             flex: 1,
@@ -40,9 +46,8 @@ export default function Stats() {
           }}
         >
           <Text style={{ fontWeight: "700" }}>Hunger Level</Text>
-          <Text style={{ marginTop: 4 }}>{Math.round(hungerLevel)}%</Text>
+          <Text style={{ marginTop: 4 }}>{Math.round(parsedHungerLevel)}%</Text>
         </View>
-
         <View
           style={{
             flex: 1,
@@ -54,20 +59,33 @@ export default function Stats() {
           }}
         >
           <Text style={{ fontWeight: "700" }}>Today's Steps</Text>
-          <Text style={{ marginTop: 4 }}>{todaySteps.toLocaleString()}</Text>
+          <Text style={{ marginTop: 4 }}>
+            {parsedTodaySteps.toLocaleString()}
+          </Text>
         </View>
       </View>
 
-      {/* Weekly steps bar chart */}
-      <View style={{ marginBottom: 20 }}>
-        <MyBarChart
+      {/* Weekly bar chart */}
+      <View
+        style={{
+          marginBottom: 20,
+          width: "100%",
+          backgroundColor: "#ffffff",
+          borderRadius: 16,
+          padding: 16,
+          alignItems: "center",
+          paddingRight: 42,
+        }}
+      >
+        <BarChart
           data={{
-            labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-            datasets: [{ data: weeklySteps }],
+            labels,
+            datasets: [{ data: parsedWeeklySteps }],
           }}
           width={screenWidth}
           height={220}
-          yAxisSuffix=""
+          fromZero
+          yAxisLabel=""
           chartConfig={{
             backgroundColor: "#ffffff",
             backgroundGradientFrom: "#ffffff",
@@ -75,13 +93,13 @@ export default function Stats() {
             decimalPlaces: 0,
             color: () => "#60a5fa",
             labelColor: () => "#475569",
-            style: { borderRadius: 16 },
+            propsForBackgroundLines: { strokeWidth: 0 },
           }}
           style={{ borderRadius: 16 }}
         />
       </View>
 
-      {/* Lifetime steps box */}
+      {/* Lifetime steps */}
       <View
         style={{
           backgroundColor: "#f8fafc",
@@ -91,7 +109,9 @@ export default function Stats() {
         }}
       >
         <Text style={{ fontWeight: "700" }}>Lifetime Steps</Text>
-        <Text style={{ marginTop: 4 }}>{weeklySteps.reduce((a, b) => a + b, 0).toLocaleString()}</Text>
+        <Text style={{ marginTop: 4 }}>
+          {parsedWeeklySteps.reduce((a, b) => a + b, 0).toLocaleString()}
+        </Text>
       </View>
     </SafeAreaView>
   );
