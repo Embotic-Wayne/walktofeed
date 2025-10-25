@@ -32,7 +32,7 @@ export default function Home() {
           Walk to Feed
         </Text>
         <Text style={{ color: '#64748b', textAlign: 'center', marginBottom: 24 }}>
-          Track steps → earn hunger points → feed your pet.
+          Track steps → earn Yum Tokens → feed your pet.
         </Text>
 
         <Pressable

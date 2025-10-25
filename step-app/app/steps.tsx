@@ -155,7 +155,7 @@ export default function Home() {
       <SafeAreaView style={s.screen}>
         <View style={s.content}>
           <Text style={s.shopTitle}>🧺 Food Store</Text>
-          <Text style={s.shopPoints}>Available Hunger Points: {hungerPoints}</Text>
+          <Text style={s.shopPoints}>Available Yum Tokens: {hungerPoints}</Text>
 
           <View style={s.grid}>
             {FOODS.map((food, index) => {
@@ -260,7 +260,16 @@ export default function Home() {
               )}
             </View>
 
-            <Text style={s.petSub}>Steps fuel your pet’s happiness!</Text>
+            <Text
+              style={{
+              fontSize: 20,          // increase size
+              fontWeight: "600",     // optional, make it bolder
+              color: "#111827",      // optional, darker color
+              textAlign: "center",   // center horizontally
+              marginTop: 30,          // optional spacing
+            }}>
+              Steps fuel your pet’s happiness!
+            </Text>
           </View>
         </View>
 
@@ -280,7 +289,7 @@ export default function Home() {
             </Text>
 
             <View style={{ marginTop: 6 }}>
-              <Text style={s.label}>Available Hunger Points: {hungerPoints}</Text>
+              <Text style={s.label}>Available Yum Tokens: {hungerPoints}</Text>
             </View>
 
             <View style={{ marginTop: 6 }}>
