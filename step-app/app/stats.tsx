@@ -1,12 +1,14 @@
 // app/stats.tsx
 import { useEffect, useState } from "react";
-import { useLocalSearchParams } from "expo-router";
-import { SafeAreaView, View, Text, Image, Dimensions } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { SafeAreaView, View, Text, Image, Dimensions, Pressable } from "react-native";
 import { BarChart } from "react-native-chart-kit";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { s, colors } from "./styles";
 
 export default function Stats() {
   const { todaySteps, hungerLevel, weeklySteps } = useLocalSearchParams();
+  const router = useRouter();
   const screenWidth = Dimensions.get("window").width - 32;
 
   // Parse values
@@ -19,7 +21,7 @@ export default function Stats() {
 
   useEffect(() => {
     (async () => {
-      const savedPet = await AsyncStorage.getItem("chosenPet");
+      const savedPet = await AsyncStorage.getItem("selectedPet");
       if (savedPet === "pufferfish") {
         setPetImage(require("../assets/images/pufferfish.png"));
       } else if (savedPet === "chicken") {
@@ -46,7 +48,7 @@ export default function Stats() {
   ];
 
   return (
-    <SafeAreaView style={{ flex: 1, padding: 16, backgroundColor: "#eef2f7" }}>
+    <SafeAreaView style={{ flex: 1, padding: 16, backgroundColor: "#FDD9FF" }}>
       {/* Pet image */}
       <View style={{ alignItems: "center", marginBottom: 20 }}>
         <Image
@@ -67,7 +69,7 @@ export default function Stats() {
         <View
           style={{
             flex: 1,
-            backgroundColor: "#f8fafc",
+            backgroundColor: "#eae7ebff",
             borderRadius: 16,
             padding: 16,
             marginRight: 8,
@@ -80,7 +82,7 @@ export default function Stats() {
         <View
           style={{
             flex: 1,
-            backgroundColor: "#f8fafc",
+            backgroundColor: "#eae7ebff",
             borderRadius: 16,
             padding: 16,
             marginLeft: 8,
@@ -99,7 +101,7 @@ export default function Stats() {
         style={{
           marginBottom: 20,
           width: "100%",
-          backgroundColor: "#ffffff",
+          backgroundColor: "#eae7ebff",
           borderRadius: 16,
           padding: 16,
           alignItems: "center",
@@ -116,12 +118,12 @@ export default function Stats() {
           fromZero
           yAxisLabel=""
           chartConfig={{
-            backgroundColor: "#ffffff",
-            backgroundGradientFrom: "#ffffff",
-            backgroundGradientTo: "#ffffff",
+            backgroundColor: "#eae7ebff",
+            backgroundGradientFrom: "#eae7ebff",
+            backgroundGradientTo: "#eae7ebff",
             decimalPlaces: 0,
-            color: () => "#60a5fa",
-            labelColor: () => "#475569",
+            color: () => "#e18a2dff",
+            labelColor: () => "#000000ff",
             propsForBackgroundLines: { strokeWidth: 0 },
           }}
           style={{ borderRadius: 16 }}
@@ -131,7 +133,7 @@ export default function Stats() {
       {/* Lifetime steps */}
       <View
         style={{
-          backgroundColor: "#f8fafc",
+          backgroundColor: "#eae7ebff",
           borderRadius: 16,
           padding: 16,
           alignItems: "center",
@@ -142,6 +144,13 @@ export default function Stats() {
           {parsedWeeklySteps.reduce((a, b) => a + b, 0).toLocaleString()}
         </Text>
       </View>
+
+      {/* Back button at bottom */}
+      <View style={{ marginTop: 8, alignItems: "center" }}>
+                  <Pressable onPress={() => router.back()} style={s.btn}>
+                    <Text style={s.btnText}>⬅️ Back</Text>
+                  </Pressable>
+                </View>
     </SafeAreaView>
   );
 }
