@@ -1,16 +1,34 @@
 // app/stats.tsx
+import { useEffect, useState } from "react";
 import { useLocalSearchParams } from "expo-router";
 import { SafeAreaView, View, Text, Image, Dimensions } from "react-native";
 import { BarChart } from "react-native-chart-kit";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Stats() {
   const { todaySteps, hungerLevel, weeklySteps } = useLocalSearchParams();
   const screenWidth = Dimensions.get("window").width - 32;
 
-  // Parse values from params
+  // Parse values
   const parsedWeeklySteps: number[] = weeklySteps ? JSON.parse(weeklySteps as string) : [];
   const parsedTodaySteps: number = todaySteps ? Number(todaySteps) : 0;
   const parsedHungerLevel: number = hungerLevel ? Number(hungerLevel) : 0;
+
+  // Pet image
+  const [petImage, setPetImage] = useState<any>(require("../assets/images/cat.png"));
+
+  useEffect(() => {
+    (async () => {
+      const savedPet = await AsyncStorage.getItem("chosenPet");
+      if (savedPet === "pufferfish") {
+        setPetImage(require("../assets/images/pufferfish.png"));
+      } else if (savedPet === "chicken") {
+        setPetImage(require("../assets/images/chicken.png"));
+      } else {
+        setPetImage(require("../assets/images/cat.png"));
+      }
+    })();
+  }, []);
 
   const labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -19,12 +37,10 @@ export default function Stats() {
       {/* Pet image */}
       <View style={{ alignItems: "center", marginBottom: 20 }}>
         <Image
-          source={require("./assets/icon128.png")}
+          source={petImage}
           style={{ width: 128, height: 128, marginBottom: 12 }}
         />
-        <Text style={{ fontSize: 18, fontWeight: "600" }}>
-          Your pet is happy!
-        </Text>
+        <Text style={{ fontSize: 18, fontWeight: "600" }}>Your pet is happy!</Text>
       </View>
 
       {/* Info boxes */}

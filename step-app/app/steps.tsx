@@ -5,6 +5,7 @@ import { Pedometer } from "expo-sensors";
 import { s, colors } from "./styles";
 import { router } from "expo-router";
 import Stats from "./stats";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const SERVER = "http://172.20.10.5:3000/steps";
 
@@ -16,37 +17,60 @@ export default function Home() {
   const hungerTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const [showFoodMenu, setShowFoodMenu] = useState(false);
 
+  // 🔹 Added: state for chosen pet image
+  const [petImage, setPetImage] = useState<any>(null);
+
+  // 🔹 Load selected pet image from AsyncStorage
+  useEffect(() => {
+    async function loadPetImage() {
+      try {
+        const petId = await AsyncStorage.getItem("selectedPet");
+        if (petId) {
+          const petImages: Record<string, any> = {
+            cat: require("../assets/images/cat.png"),
+            pufferfish: require("../assets/images/pufferfish.png"),
+            chicken: require("../assets/images/chicken.png"),
+          };
+          setPetImage(petImages[petId]);
+        }
+      } catch (err) {
+        console.error("Error loading pet image:", err);
+      }
+    }
+    loadPetImage();
+  }, []);
+
   // Food catalog
   const FOODS = [
-    { name: "Apple 🍎",   price: 5,   gain: 5 },
-    { name: "Cookie 🍪",  price: 15,  gain: 15 },
-    { name: "Fish 🐟",    price: 25,  gain: 25 },
-    { name: "Cake 🎂",    price: 50,  gain: 50 },
-    { name: "Chicken 🍗", price: 75,  gain: 75 },
-    { name: "Steak 🥩",   price: 100, gain: 100 },
+    { name: "Apple 🍎", price: 5, gain: 5 },
+    { name: "Cookie 🍪", price: 15, gain: 15 },
+    { name: "Fish 🐟", price: 25, gain: 25 },
+    { name: "Cake 🎂", price: 50, gain: 50 },
+    { name: "Chicken 🍗", price: 75, gain: 75 },
+    { name: "Steak 🥩", price: 100, gain: 100 },
   ];
-  // --- steps.tsx ---
 
-async function getWeeklySteps(): Promise<number[]> {
-  const result: number[] = [];
-  const today = new Date();
-  for (let i = 6; i >= 0; i--) {
-    const day = new Date();
-    day.setDate(today.getDate() - i);
-    day.setHours(0, 0, 0, 0);
+  // --- Weekly steps fetcher ---
+  async function getWeeklySteps(): Promise<number[]> {
+    const result: number[] = [];
+    const today = new Date();
+    for (let i = 6; i >= 0; i--) {
+      const day = new Date();
+      day.setDate(today.getDate() - i);
+      day.setHours(0, 0, 0, 0);
 
-    const nextDay = new Date(day);
-    nextDay.setDate(day.getDate() + 1);
+      const nextDay = new Date(day);
+      nextDay.setDate(day.getDate() + 1);
 
-    try {
-      const res = await Pedometer.getStepCountAsync(day, nextDay);
-      result.push(res.steps ?? 0);
-    } catch {
-      result.push(0); // fallback
+      try {
+        const res = await Pedometer.getStepCountAsync(day, nextDay);
+        result.push(res.steps ?? 0);
+      } catch {
+        result.push(0); // fallback
+      }
     }
+    return result;
   }
-  return result;
-}
 
   function buyFood(food: { name: string; price: number; gain: number }) {
     if (hungerPoints < food.price || hungerLevel >= 100) return;
@@ -178,7 +202,7 @@ async function getWeeklySteps(): Promise<number[]> {
 
         {/* Bottom nav */}
         <View style={s.navBar}>
-          <Pressable style={s.navBtn} onPress={() => router.push('/')}>
+          <Pressable style={s.navBtn} onPress={() => router.push("/")}>
             <Text style={{ color: "white", fontWeight: "700" }}>🏠</Text>
           </Pressable>
           <Pressable style={s.navBtn} onPress={() => setShowFoodMenu(true)}>
@@ -187,19 +211,19 @@ async function getWeeklySteps(): Promise<number[]> {
           <Pressable
             style={s.navBtn}
             onPress={async () => {
-              const weeklySteps = await getWeeklySteps(); // fetch last 7 days
+              const weeklySteps = await getWeeklySteps();
               router.push({
-              pathname: "/stats",
-              params: {
-                todaySteps,
-                weeklySteps: JSON.stringify(weeklySteps), // must stringify for router params
-                hungerLevel,
-              },
+                pathname: "/stats",
+                params: {
+                  todaySteps,
+                  weeklySteps: JSON.stringify(weeklySteps),
+                  hungerLevel,
+                },
               });
-            }}>
-          <Text style={{ color: "white", fontWeight: "700" }}>📊</Text>
-        </Pressable>
-
+            }}
+          >
+            <Text style={{ color: "white", fontWeight: "700" }}>📊</Text>
+          </Pressable>
         </View>
       </SafeAreaView>
     );
@@ -215,13 +239,22 @@ async function getWeeklySteps(): Promise<number[]> {
             <Text style={s.petTitle}>Your Pet</Text>
 
             <View style={s.petImageWrap}>
-              {/* Put your asset at app/assets/pet.png (or change the path) */}
-              <Image
-                source={require("../assets/images/icon128.png")}
-                style={s.petImage}
-                accessible
-                accessibilityLabel="Virtual pet"
-              />
+              {petImage ? (
+                <Image source={petImage} style={s.petImage} />
+              ) : (
+                <View
+                  style={{
+                    width: 128,
+                    height: 128,
+                    borderRadius: 20,
+                    backgroundColor: "#e5e7eb",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Text style={{ color: "#9ca3af" }}>No pet selected</Text>
+                </View>
+              )}
             </View>
 
             <Text style={s.petSub}>Steps fuel your pet’s happiness!</Text>
@@ -231,63 +264,64 @@ async function getWeeklySteps(): Promise<number[]> {
         {/* Steps / hunger card */}
         <View
           style={{
-          position: "absolute",
-          bottom: 0, // distance from bottom (adjust freely)
-          left: 15,
-          right: 15,
-          alignItems: "center", // centers horizontally
-        }}
->
-        <View style={s.stepsCard}>
-          <Text style={s.stepsTitle}>
-            Today&apos;s Steps: {todaySteps.toLocaleString()}
-          </Text>
-
-          <View style={{ marginTop: 6 }}>
-            <Text style={s.label}>Available Hunger Points: {hungerPoints}</Text>
-          </View>
-
-          <View style={{ marginTop: 6 }}>
-            <Text style={[s.label, { color: hungerColor, marginBottom: 6 }]}>
-              Hunger Level: {Math.round(hungerLevel)}%
+            position: "absolute",
+            bottom: 0,
+            left: 15,
+            right: 15,
+            alignItems: "center",
+          }}
+        >
+          <View style={s.stepsCard}>
+            <Text style={s.stepsTitle}>
+              Today&apos;s Steps: {todaySteps.toLocaleString()}
             </Text>
-            <View style={s.barWrap}>
-              <View
-                style={[
-                  s.barFill,
-                  {
-                    width: `${Math.max(0, Math.min(100, hungerLevel))}%`,
-                    backgroundColor: hungerColor,
-                  },
-                ]}
-              />
+
+            <View style={{ marginTop: 6 }}>
+              <Text style={s.label}>Available Hunger Points: {hungerPoints}</Text>
+            </View>
+
+            <View style={{ marginTop: 6 }}>
+              <Text style={[s.label, { color: hungerColor, marginBottom: 6 }]}>
+                Hunger Level: {Math.round(hungerLevel)}%
+              </Text>
+              <View style={s.barWrap}>
+                <View
+                  style={[
+                    s.barFill,
+                    {
+                      width: `${Math.max(0, Math.min(100, hungerLevel))}%`,
+                      backgroundColor: hungerColor,
+                    },
+                  ]}
+                />
+              </View>
             </View>
           </View>
         </View>
       </View>
-      </View>
 
       {/* Bottom nav */}
       <View style={s.navBar}>
-        <Pressable style={s.navBtn} onPress={() => router.push('/')}>
+        <Pressable style={s.navBtn} onPress={() => router.push("/")}>
           <Text style={{ color: "white", fontWeight: "700" }}>🏠</Text>
         </Pressable>
         <Pressable style={s.navBtn} onPress={() => setShowFoodMenu(true)}>
           <Text style={{ color: "white", fontWeight: "700" }}>🛒</Text>
         </Pressable>
-         <Pressable
-            style={s.navBtn}
-            onPress={async () => {
-              const weeklySteps = await getWeeklySteps(); // fetch last 7 days
-              router.push({
+        <Pressable
+          style={s.navBtn}
+          onPress={async () => {
+            const weeklySteps = await getWeeklySteps();
+            router.push({
               pathname: "/stats",
               params: {
                 todaySteps,
-                weeklySteps: JSON.stringify(weeklySteps), // must stringify for router params
+                weeklySteps: JSON.stringify(weeklySteps),
                 hungerLevel,
               },
-              });
-            }}>
+            });
+          }}
+        >
           <Text style={{ color: "white", fontWeight: "700" }}>📊</Text>
         </Pressable>
       </View>
