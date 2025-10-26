@@ -26,12 +26,12 @@ export default function Home() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, padding: 24, backgroundColor: '#eef2f7' }}>
+    <SafeAreaView style={{ flex: 1, padding: 24, backgroundColor: '#FDD9FF' }}>
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <Text style={{ fontSize: 28, fontWeight: '800', marginBottom: 16 }}>
-          Walk to Feed
+          Walk2Feed
         </Text>
-        <Text style={{ color: '#64748b', textAlign: 'center', marginBottom: 24 }}>
+        <Text style={{ color: '#000000ff', textAlign: 'center', marginBottom: 24 }}>
           Track steps → earn Yum Tokens → feed your pet.
         </Text>
 
@@ -47,7 +47,7 @@ export default function Home() {
           })}
         >
           <Text style={{ color: 'white', fontWeight: '700', fontSize: 16 }}>
-            Open Step & Hunger Meter
+            Check in on your pet!
           </Text>
         </Pressable>
 
