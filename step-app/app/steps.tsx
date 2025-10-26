@@ -4,8 +4,32 @@ import { SafeAreaView, Text, View, Pressable, Image } from "react-native";
 import { Pedometer } from "expo-sensors";
 import { s, colors } from "./styles";
 import { router } from "expo-router";
-import Stats from "./stats";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  Audio,
+  InterruptionModeAndroid,
+  InterruptionModeIOS,
+} from "expo-av";
+
+// ---------- Static asset maps (required for RN/Metro) ----------
+const PET_IMAGES: Record<string, any> = {
+  cat: require("../assets/images/cat.png"),
+  pufferfish: require("../assets/images/pufferfish.png"),
+  chicken: require("../assets/images/chicken.png"),
+};
+
+const SAD_PET_IMAGES: Record<string, any> = {
+  cat: require("../assets/images/sad-cat.png"),
+  pufferfish: require("../assets/images/sad-pufferfish.png"),
+  chicken: require("../assets/images/sad-chicken.png"),
+};
+
+// 👇 This replaces `require("../assets/sounds/{petId}-audio.mp3")`
+const SOUND_MAP: Record<string, any> = {
+  cat: require("../assets/sounds/cat-audio.mp3"),
+  pufferfish: require("../assets/sounds/pufferfish-audio.mp3"),
+  chicken: require("../assets/sounds/chicken-audio.mp3"),
+};
 
 const SERVER = "http://10.252.2.113:3000/steps";
 
@@ -18,66 +42,111 @@ export default function Home() {
   const [showFoodMenu, setShowFoodMenu] = useState(false);
   const [petDead, setPetDead] = useState(false);
 
-  // 🔹 Added: state for chosen pet image
+  // Pet identity + art
+  const [petId, setPetId] = useState<string | null>(null);
   const [petImage, setPetImage] = useState<any>(null);
   const [sadPetImage, setSadPetImage] = useState<any>(null);
   const [petName, setPetName] = useState<string | null>(null);
 
+  // Sound
+  const feedSound = useRef<Audio.Sound | null>(null);
 
-  // 🔹 Load selected pet image from AsyncStorage
+  // ------- Audio global mode (once) -------
   useEffect(() => {
-    async function loadPetImage() {
+    Audio.setAudioModeAsync({
+      playsInSilentModeIOS: true,
+      allowsRecordingIOS: false,
+      staysActiveInBackground: false,
+      shouldDuckAndroid: true,
+      playThroughEarpieceAndroid: false,
+      interruptionModeIOS: InterruptionModeIOS.MixWithOthers,
+      interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
+    }).catch((e) => console.warn("Audio mode error:", e));
+
+    return () => {
+      // Unload on unmount just in case
+      feedSound.current?.unloadAsync().catch(() => {});
+    };
+  }, []);
+
+  // ------- Load saved state & pet selection -------
+  useEffect(() => {
+    (async () => {
       try {
-        const savedHunger = await AsyncStorage.getItem("hungerLevel");
-        const petId = await AsyncStorage.getItem("selectedPet");
-        const name = await AsyncStorage.getItem("petName"); // load name
-        const savedPoints = await AsyncStorage.getItem("hungerPoints");
+        const [savedHunger, savedPoints, savedPetId, name] = await Promise.all([
+          AsyncStorage.getItem("hungerLevel"),
+          AsyncStorage.getItem("hungerPoints"),
+          AsyncStorage.getItem("selectedPet"),
+          AsyncStorage.getItem("petName"),
+        ]);
 
         if (savedHunger !== null) setHungerLevel(Number(savedHunger));
         if (savedPoints !== null) setHungerPoints(Number(savedPoints));
         else setHungerPoints(0);
-        if (petId) {
-          const petImages: Record<string, any> = {
-            cat: require("../assets/images/cat.png"),
-            pufferfish: require("../assets/images/pufferfish.png"),
-            chicken: require("../assets/images/chicken.png"),
-          };
-          const sadPetImages: Record<string, any> = {
-            cat: require("../assets/images/sad-cat.png"),
-            pufferfish: require("../assets/images/sad-pufferfish.png"),
-            chicken: require("../assets/images/sad-chicken.png"),
-          };
-          setPetImage(petImages[petId]);
-          // Store sad pet images for later use
-          setSadPetImage(sadPetImages[petId]);
+
+        if (savedPetId) {
+          setPetId(savedPetId);
+          setPetImage(PET_IMAGES[savedPetId]);
+          setSadPetImage(SAD_PET_IMAGES[savedPetId]);
         }
+
         if (name) setPetName(name);
       } catch (err) {
-        console.error("Error loading pet image:", err);
+        console.error("Error loading saved state:", err);
       }
-    }
-    loadPetImage();
+    })();
   }, []);
 
+  // ------- When petId changes, (re)load the correct local sound -------
   useEffect(() => {
-    AsyncStorage.setItem("hungerLevel", hungerLevel.toString());
+    let cancelled = false;
+
+    (async () => {
+      // Unload any previous sound first
+      try {
+        await feedSound.current?.unloadAsync();
+      } catch {}
+      feedSound.current = null;
+
+      if (!petId) return;
+
+      const soundAsset = SOUND_MAP[petId];
+      if (!soundAsset) {
+        // optional: fallback to cat if missing asset
+        return;
+      }
+
+      try {
+        const { sound } = await Audio.Sound.createAsync(soundAsset, {
+          shouldPlay: false,
+          volume: 1.0,
+        });
+        if (!cancelled) {
+          feedSound.current = sound;
+        } else {
+          // if effect was cleaned up before load completed
+          await sound.unloadAsync();
+        }
+      } catch (e) {
+        console.warn("Failed to load pet sound:", e);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [petId]);
+
+  // ------- Persist hunger values -------
+  useEffect(() => {
+    AsyncStorage.setItem("hungerLevel", hungerLevel.toString()).catch(() => {});
   }, [hungerLevel]);
 
   useEffect(() => {
-  AsyncStorage.setItem("hungerPoints", hungerPoints.toString());
-}, [hungerPoints]);
+    AsyncStorage.setItem("hungerPoints", hungerPoints.toString()).catch(() => {});
+  }, [hungerPoints]);
 
-  // Food catalog
-  const FOODS = [
-    { name: "Apple 🍎", price: 5, gain: 5 },
-    { name: "Cookie 🍪", price: 15, gain: 15 },
-    { name: "Fish 🐟", price: 25, gain: 25 },
-    { name: "Cake 🎂", price: 50, gain: 50 },
-    { name: "Chicken 🍗", price: 75, gain: 75 },
-    { name: "Steak 🥩", price: 100, gain: 100 },
-  ];
-
-  // --- Weekly steps fetcher ---
+  // ------- Weekly steps fetcher -------
   async function getWeeklySteps(): Promise<number[]> {
     const result: number[] = [];
     const today = new Date();
@@ -93,28 +162,46 @@ export default function Home() {
         const res = await Pedometer.getStepCountAsync(day, nextDay);
         result.push(res.steps ?? 0);
       } catch {
-        result.push(0); // fallback
+        result.push(0);
       }
     }
     return result;
   }
 
+  // ------- Play sound (used by pet tap + buying food) -------
+  async function playFeedSound() {
+    try {
+      if (!feedSound.current) return; // not yet loaded (e.g., petId missing)
+      await feedSound.current.replayAsync();
+    } catch (e) {
+      console.warn("Feed sound error:", e);
+    }
+  }
+
+  // ------- Buy food (points -> hunger, play sound) -------
   function buyFood(food: { name: string; price: number; gain: number }) {
     if (hungerPoints < food.price || hungerLevel >= 100) return;
     setHungerPoints((p) => p - food.price);
     setHungerLevel((h) => Math.min(100, h + food.gain));
+    playFeedSound();
   }
 
-  // Hunger ticks down slowly
+  // Food catalog
+  const FOODS = [
+    { name: "Apple 🍎", price: 5, gain: 5 },
+    { name: "Cookie 🍪", price: 15, gain: 15 },
+    { name: "Fish 🐟", price: 25, gain: 25 },
+    { name: "Cake 🎂", price: 50, gain: 50 },
+    { name: "Chicken 🍗", price: 75, gain: 75 },
+    { name: "Steak 🥩", price: 100, gain: 100 },
+  ];
+
+  // ------- Hunger ticks down slowly -------
   useEffect(() => {
     hungerTimer.current = setInterval(() => {
       setHungerLevel((prev) => {
-        const next = Math.max(0, prev - 0.1);
-
-        if (next === 0 && !petDead) {
-          setPetDead(true);
-        }
-
+        const next = Math.max(0, prev - 5); // gentle decay
+        if (next === 0 && !petDead) setPetDead(true);
         return next;
       });
     }, 1000);
@@ -124,7 +211,7 @@ export default function Home() {
     };
   }, [petDead]);
 
-  // Step tracking
+  // ------- Step tracking -------
   useEffect(() => {
     let sub: { remove?: () => void } | null = null;
     let mounted = true;
@@ -195,7 +282,6 @@ export default function Home() {
               const affordable = hungerPoints >= food.price;
               const full = hungerLevel >= 100;
               const disabled = !affordable || full;
-
               return (
                 <Pressable
                   key={index}
@@ -267,7 +353,7 @@ export default function Home() {
   }
 
   // ----------------- MAIN VIEW -----------------
-return (
+  return (
     <SafeAreaView style={s.screen}>
       <View style={s.content}>
         {/* Pet card */}
@@ -276,34 +362,36 @@ return (
             <Text style={s.petTitle}>{petName || "Your Pet"}</Text>
 
             <View style={s.petImageWrap}>
-              {petDead ? (
-                <Image
-                  source={require("../assets/images/grave.png")}
-                  style={s.petImage}
-                />
-              ) : petImage ? (
-                <Image 
-                  source={
-                    hungerLevel > 0 && hungerLevel < 40 && sadPetImage 
-                      ? sadPetImage 
-                      : petImage
-                  } 
-                  style={s.petImage} 
-                />
-              ) : (
-                <View
-                  style={{
-                    width: 128,
-                    height: 128,
-                    borderRadius: 20,
-                    backgroundColor: "#e5e7eb",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Text style={{ color: "#9ca3af" }}>No pet selected</Text>
-                </View>
-              )}
+              <Pressable onPress={playFeedSound} disabled={petDead}>
+                {petDead ? (
+                  <Image
+                    source={require("../assets/images/grave.png")}
+                    style={s.petImage}
+                  />
+                ) : petImage ? (
+                  <Image
+                    source={
+                      hungerLevel > 0 && hungerLevel < 40 && sadPetImage
+                        ? sadPetImage
+                        : petImage
+                    }
+                    style={s.petImage}
+                  />
+                ) : (
+                  <View
+                    style={{
+                      width: 128,
+                      height: 128,
+                      borderRadius: 20,
+                      backgroundColor: "#e5e7eb",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Text style={{ color: "#9ca3af" }}>No pet selected</Text>
+                  </View>
+                )}
+              </Pressable>
             </View>
 
             <Text
@@ -386,14 +474,15 @@ return (
         <Pressable
           style={s.navBtn}
           onPress={() =>
-            router.push((`/chat?steps=${String(todaySteps)}&hunger=${String(
-              Math.round(hungerLevel)
-            )}&name=${encodeURIComponent("Mochi")}`) as any)
+            router.push(
+              (`/chat?steps=${String(todaySteps)}&hunger=${String(
+                Math.round(hungerLevel)
+              )}&name=${encodeURIComponent(petName || "Mochi")}`) as any
+            )
           }
         >
           <Text style={{ color: "white", fontWeight: "700" }}>💬</Text>
         </Pressable>
-        
       </View>
 
       {/* Pet Death Modal */}
@@ -434,13 +523,13 @@ return (
               onPress={async () => {
                 await AsyncStorage.removeItem("selectedPet");
                 await AsyncStorage.removeItem("petName");
+                setPetId(null);
                 setPetImage(null);
                 setSadPetImage(null);
                 setPetName(null);
                 setHungerLevel(100);
                 setHungerPoints(0);
                 setPetDead(false);
-
                 router.push("/choosepet");
               }}
               style={{
