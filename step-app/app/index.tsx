@@ -45,26 +45,10 @@ export default function Home() {
             paddingHorizontal: 20,
             borderRadius: 14,
             opacity: pressed ? 0.9 : 1,
-            marginBottom: 12,
           })}
         >
           <Text style={{ color: 'white', fontWeight: '700', fontSize: 16 }}>
             Check in on your pet!
-          </Text>
-        </Pressable>
-
-        <Pressable
-          onPress={() => router.push('/choosepet')}
-          style={({ pressed }) => ({
-            backgroundColor: '#3b82f6',
-            paddingVertical: 14,
-            paddingHorizontal: 20,
-            borderRadius: 14,
-            opacity: pressed ? 0.9 : 1,
-          })}
-        >
-          <Text style={{ color: 'white', fontWeight: '700', fontSize: 16 }}>
-            Choose Your Pet
           </Text>
         </Pressable>
       </View>
