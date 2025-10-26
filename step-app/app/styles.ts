@@ -69,6 +69,8 @@ export const s = StyleSheet.create({
     marginTop: 6,
     marginBottom: 2,
   },
+  // Subtitle under the pet title
+  petSub: { fontSize: 16, textAlign: "center", color: colors.sub, marginTop: 6 },
 
   // Stats row (Today / Hunger)
   statsRow: { flexDirection: "row", gap: 20, marginBottom: 20 },

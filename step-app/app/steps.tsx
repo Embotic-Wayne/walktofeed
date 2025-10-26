@@ -245,6 +245,7 @@ export default function Home() {
           >
             <Text style={{ color: "white", fontWeight: "700" }}>📊</Text>
           </Pressable>
+          {/* Chat button intentionally omitted here; placed in main nav */}
         </View>
       </SafeAreaView>
     );
@@ -360,6 +361,17 @@ return (
         >
           <Text style={{ color: "white", fontWeight: "700" }}>📊</Text>
         </Pressable>
+        <Pressable
+          style={s.navBtn}
+          onPress={() =>
+            router.push((`/chat?steps=${String(todaySteps)}&hunger=${String(
+              Math.round(hungerLevel)
+            )}&name=${encodeURIComponent("Mochi")}`) as any)
+          }
+        >
+          <Text style={{ color: "white", fontWeight: "700" }}>💬</Text>
+        </Pressable>
+        
       </View>
 
       {/* Pet Death Modal */}
