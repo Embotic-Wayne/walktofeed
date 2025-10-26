@@ -13,9 +13,34 @@ export default function Chat() {
     { role: "assistant", content: "Hi! I’m Claude. Ask me anything." },
   ]);
 
+  // Height & weight inputs for step goal
+  const [height, setHeight] = useState("");
+  const [weight, setWeight] = useState("");
+  const [stepGoal, setStepGoal] = useState<number | null>(null);
+
   // 👇 change if your server IP/port is different on your LAN
   const CHAT_SERVER = "http://10.252.2.113:3000/chat";
-  
+
+  // Calculate step goal based on height & weight
+  const calculateStepGoal = () => {
+    const hInches = parseFloat(height);
+    const wLbs = parseFloat(weight);
+    if (!hInches || !wLbs) return;
+
+    // Convert to metric for BMI
+    const hMeters = hInches * 0.0254;
+    const wKg = wLbs * 0.453592;
+
+    const bmi = wKg / (hMeters ** 2);
+    const steps = Math.round(10000 * (1 + (bmi - 21) / 10));
+
+    setStepGoal(steps);
+
+    setMessages(cur => [
+      ...cur,
+      { role: "assistant", content: `Based on your height and weight, your step goal for today is ${steps} steps.` },
+    ]);
+  };
 
   const send = async () => {
     const content = text.trim();
@@ -31,7 +56,6 @@ export default function Chat() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          // server expects: [{ role, content }]
           messages: next.map(m => ({ role: m.role, content: m.content })),
         }),
       });
@@ -53,6 +77,57 @@ export default function Chat() {
     <SafeAreaView style={s.screen}>
       <View style={s.content}>
         <Text style={s.title}>💬 Chat</Text>
+
+        {/* Height & Weight input for step goal */}
+        {stepGoal === null && (
+          <View style={{ marginVertical: 16 }}>
+
+            {/* Height */}
+            <Text style={{ marginBottom: 4, fontWeight: "bold", color: "#111827" }}>
+              Height (in inches)
+            </Text>
+            <TextInput
+              value={height}
+              onChangeText={setHeight}
+              placeholder="e.g., 67"
+              keyboardType="numeric"
+              style={{
+                backgroundColor: "white",
+                borderRadius: 12,
+                paddingHorizontal: 12,
+                paddingVertical: 10,
+                borderWidth: 1,
+                borderColor: "#e5e7eb",
+              }}
+            />
+
+            {/* Weight */}
+            <Text style={{ marginTop: 12, marginBottom: 4, fontWeight: "bold", color: "#111827" }}>
+              Weight (in pounds)
+            </Text>
+            <TextInput
+              value={weight}
+              onChangeText={setWeight}
+              placeholder="e.g., 150"
+              keyboardType="numeric"
+              style={{
+                backgroundColor: "white",
+                borderRadius: 12,
+                paddingHorizontal: 12,
+                paddingVertical: 10,
+                borderWidth: 1,
+                borderColor: "#e5e7eb",
+              }}
+            />
+
+            <Pressable
+              style={[s.btn, { marginTop: 10 }]}
+              onPress={calculateStepGoal}
+            >
+              <Text style={s.btnText}>Calculate Step Goal</Text>
+            </Pressable>
+          </View>
+        )}
 
         {/* Messages */}
         <FlatList
@@ -80,32 +155,35 @@ export default function Chat() {
         />
 
         {/* Input + Send */}
-        <View style={{ marginTop: 16 }}>
-          <TextInput
-            value={text}
-            onChangeText={setText}
-            placeholder="Type a message..."
-            returnKeyType="send"
-            onSubmitEditing={send}
-            editable={!sending}
-            style={{
-              backgroundColor: "white",
-              borderRadius: 12,
-              paddingHorizontal: 12,
-              paddingVertical: 10,
-              borderWidth: 1,
-              borderColor: "#e5e7eb",
-            }}
-          />
-          <Pressable
-            style={[s.btn, { marginTop: 10, opacity: text.trim() && !sending ? 1 : 0.6 }]}
-            onPress={send}
-            disabled={!text.trim() || sending}
-          >
-            <Text style={s.btnText}>{sending ? "Sending..." : "Send"}</Text>
-          </Pressable>
-        </View>
+        {stepGoal !== null && (
+          <View style={{ marginTop: 16 }}>
+            <TextInput
+              value={text}
+              onChangeText={setText}
+              placeholder="Type a message..."
+              returnKeyType="send"
+              onSubmitEditing={send}
+              editable={!sending}
+              style={{
+                backgroundColor: "white",
+                borderRadius: 12,
+                paddingHorizontal: 12,
+                paddingVertical: 10,
+                borderWidth: 1,
+                borderColor: "#e5e7eb",
+              }}
+            />
+            <Pressable
+              style={[s.btn, { marginTop: 10, opacity: text.trim() && !sending ? 1 : 0.6 }]}
+              onPress={send}
+              disabled={!text.trim() || sending}
+            >
+              <Text style={s.btnText}>{sending ? "Sending..." : "Send"}</Text>
+            </Pressable>
+          </View>
+        )}
 
+        {/* Back button */}
         <View style={{ marginTop: 16 }}>
           <Pressable style={s.btn} onPress={() => router.back()}>
             <Text style={s.btnText}>⬅️ Back</Text>

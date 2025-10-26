@@ -200,7 +200,7 @@ export default function Home() {
   useEffect(() => {
     hungerTimer.current = setInterval(() => {
       setHungerLevel((prev) => {
-        const next = Math.max(0, prev - 5); // gentle decay
+        const next = Math.max(0, prev - 2); // gentle decay
         if (next === 0 && !petDead) setPetDead(true);
         return next;
       });
