@@ -7,7 +7,7 @@ import { router } from "expo-router";
 import Stats from "./stats";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const SERVER = "http://172.20.10.5:3000/steps";
+const SERVER = "http://10.252.2.113:3000/steps";
 
 export default function Home() {
   const [todaySteps, setTodaySteps] = useState<number>(0);
@@ -20,6 +20,7 @@ export default function Home() {
 
   // 🔹 Added: state for chosen pet image
   const [petImage, setPetImage] = useState<any>(null);
+  const [sadPetImage, setSadPetImage] = useState<any>(null);
   const [petName, setPetName] = useState<string | null>(null);
 
 
@@ -41,7 +42,14 @@ export default function Home() {
             pufferfish: require("../assets/images/pufferfish.png"),
             chicken: require("../assets/images/chicken.png"),
           };
+          const sadPetImages: Record<string, any> = {
+            cat: require("../assets/images/sad-cat.png"),
+            pufferfish: require("../assets/images/sad-pufferfish.png"),
+            chicken: require("../assets/images/sad-chicken.png"),
+          };
           setPetImage(petImages[petId]);
+          // Store sad pet images for later use
+          setSadPetImage(sadPetImages[petId]);
         }
         if (name) setPetName(name);
       } catch (err) {
@@ -274,7 +282,14 @@ return (
                   style={s.petImage}
                 />
               ) : petImage ? (
-                <Image source={petImage} style={s.petImage} />
+                <Image 
+                  source={
+                    hungerLevel > 0 && hungerLevel < 40 && sadPetImage 
+                      ? sadPetImage 
+                      : petImage
+                  } 
+                  style={s.petImage} 
+                />
               ) : (
                 <View
                   style={{
@@ -420,6 +435,7 @@ return (
                 await AsyncStorage.removeItem("selectedPet");
                 await AsyncStorage.removeItem("petName");
                 setPetImage(null);
+                setSadPetImage(null);
                 setPetName(null);
                 setHungerLevel(100);
                 setHungerPoints(0);
