@@ -16,6 +16,7 @@ export default function Home() {
   const lastSent = useRef<number>(0);
   const hungerTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const [showFoodMenu, setShowFoodMenu] = useState(false);
+  const [petDead, setPetDead] = useState(false);
 
   // 🔹 Added: state for chosen pet image
   const [petImage, setPetImage] = useState<any>(null);
@@ -92,12 +93,21 @@ export default function Home() {
   // Hunger ticks down slowly
   useEffect(() => {
     hungerTimer.current = setInterval(() => {
-      setHungerLevel((prev) => Math.max(0, prev - 0.1));
+      setHungerLevel((prev) => {
+        const next = Math.max(0, prev - 0.1);
+
+        if (next === 0 && !petDead) {
+          setPetDead(true);
+        }
+
+        return next;
+      });
     }, 1000);
+
     return () => {
       if (hungerTimer.current) clearInterval(hungerTimer.current);
     };
-  }, []);
+  }, [petDead]);
 
   // Step tracking
   useEffect(() => {
@@ -241,7 +251,7 @@ export default function Home() {
   }
 
   // ----------------- MAIN VIEW -----------------
-  return (
+return (
     <SafeAreaView style={s.screen}>
       <View style={s.content}>
         {/* Pet card */}
@@ -250,7 +260,12 @@ export default function Home() {
             <Text style={s.petTitle}>{petName || "Your Pet"}</Text>
 
             <View style={s.petImageWrap}>
-              {petImage ? (
+              {petDead ? (
+                <Image
+                  source={require("../assets/images/grave.png")}
+                  style={s.petImage}
+                />
+              ) : petImage ? (
                 <Image source={petImage} style={s.petImage} />
               ) : (
                 <View
@@ -270,12 +285,13 @@ export default function Home() {
 
             <Text
               style={{
-              fontSize: 20,          // increase size
-              fontWeight: "600",     // optional, make it bolder
-              color: "#111827",      // optional, darker color
-              textAlign: "center",   // center horizontally
-              marginTop: 30,          // optional spacing
-            }}>
+                fontSize: 20,
+                fontWeight: "600",
+                color: "#111827",
+                textAlign: "center",
+                marginTop: 30,
+              }}
+            >
               Steps fuel your pet’s happiness!
             </Text>
           </View>
@@ -345,6 +361,67 @@ export default function Home() {
           <Text style={{ color: "white", fontWeight: "700" }}>📊</Text>
         </Pressable>
       </View>
+
+      {/* Pet Death Modal */}
+      {petDead && (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: 24,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "white",
+              borderRadius: 20,
+              padding: 24,
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: "700",
+                marginBottom: 20,
+                textAlign: "center",
+              }}
+            >
+              💀 Your pet has died!
+            </Text>
+
+            <Pressable
+              onPress={async () => {
+                await AsyncStorage.removeItem("selectedPet");
+                await AsyncStorage.removeItem("petName");
+                setPetImage(null);
+                setPetName(null);
+                setHungerLevel(100);
+                setHungerPoints(0);
+                setPetDead(false);
+
+                router.push("/choosepet");
+              }}
+              style={{
+                backgroundColor: "#1f2937",
+                paddingVertical: 12,
+                paddingHorizontal: 24,
+                borderRadius: 12,
+              }}
+            >
+              <Text style={{ color: "white", fontWeight: "700" }}>
+                Pick a New Pet
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
