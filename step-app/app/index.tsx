@@ -1,6 +1,6 @@
 // app/index.tsx
 import { useEffect, useState } from "react";
-import { SafeAreaView, View, Text, Pressable } from 'react-native';
+import { SafeAreaView, View, Text, Pressable, Image } from 'react-native';
 import { router } from 'expo-router';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -28,10 +28,12 @@ export default function Home() {
   return (
     <SafeAreaView style={{ flex: 1, padding: 24, backgroundColor: '#FDD9FF' }}>
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ fontSize: 28, fontWeight: '800', marginBottom: 16 }}>
-          Walk2Feed
-        </Text>
-        <Text style={{ color: '#000000ff', textAlign: 'center', marginBottom: 24 }}>
+        <Image
+          source={require("../assets/images/walk2feed-logo.png")} // <- use require
+          style={{ width: 240, height: 240, marginBottom: 24 }}
+          resizeMode="contain"
+        />
+        <Text style={{ color: '#000000ff', textAlign: 'center', marginBottom: 24, fontSize: 16 }}>
           Track steps → earn Yum Tokens → feed your pet.
         </Text>
 
