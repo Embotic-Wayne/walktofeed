@@ -8,9 +8,15 @@ export default function ChoosePet() {
   const router = useRouter();
 
   async function selectPet(petId: string) {
+    try {
     await AsyncStorage.setItem("selectedPet", petId);
+    await AsyncStorage.setItem("hungerLevel", "100"); // reset hunger to full
+    await AsyncStorage.setItem("hungerPoints", "0");  // reset points to 0
     console.log("Selected pet:", petId);
     router.push("/personalize");
+  } catch (err) {
+    console.error("Error selecting pet:", err);
+  }
   }
 
   return (

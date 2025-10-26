@@ -30,8 +30,11 @@ export default function Home() {
         const savedHunger = await AsyncStorage.getItem("hungerLevel");
         const petId = await AsyncStorage.getItem("selectedPet");
         const name = await AsyncStorage.getItem("petName"); // load name
+        const savedPoints = await AsyncStorage.getItem("hungerPoints");
 
         if (savedHunger !== null) setHungerLevel(Number(savedHunger));
+        if (savedPoints !== null) setHungerPoints(Number(savedPoints));
+        else setHungerPoints(0);
         if (petId) {
           const petImages: Record<string, any> = {
             cat: require("../assets/images/cat.png"),
@@ -51,6 +54,10 @@ export default function Home() {
   useEffect(() => {
     AsyncStorage.setItem("hungerLevel", hungerLevel.toString());
   }, [hungerLevel]);
+
+  useEffect(() => {
+  AsyncStorage.setItem("hungerPoints", hungerPoints.toString());
+}, [hungerPoints]);
 
   // Food catalog
   const FOODS = [
