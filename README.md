@@ -16,10 +16,10 @@ you gain from getting steps in. Your steps will be taken from your health app.
 # Packages to Install 
 
 • npm install expo-sensors  
-• npm install @react-native-async-storage/async-storage
-• npm install expo-router
-• npm install react-native-safe-area-context
-• npm install react-native-svg
+• npm install @react-native-async-storage/async-storage  
+• npm install expo-router  
+• npm install react-native-safe-area-context  
+• npm install react-native-svg  
 
 Please Let us know if we are missing any packages!
 
@@ -29,23 +29,23 @@ Please Let us know if we are missing any packages!
    https://console.anthropic.com/login?returnTo=%2F%3F
    Apply the API Key into .env in the step-server folder
 
-For Windows:
-Terminal 1<br>
-cd step-server
-node server.js
+For Windows:  
+Terminal 1  
+cd step-server  
+node server.js  
 
-Terminal 2<br>
-cd step-app
-npx expo start --tunnel
+Terminal 2  
+cd step-app  
+npx expo start --tunnel  
 
-For Mac:
-Terminal 1
-cd step-server
-node server.js
+For Mac:  
+Terminal 1  
+cd step-server  
+node server.js  
 
-Terminal 2
-cd step-app
-npx expo start
+Terminal 2  
+cd step-app  
+npx expo start  
 
 # Contributors
 Name + Github
