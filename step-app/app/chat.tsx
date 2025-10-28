@@ -19,7 +19,7 @@ export default function Chat() {
   const [stepGoal, setStepGoal] = useState<number | null>(null);
 
   // 👇 change if your server IP/port is different on your LAN
-  const CHAT_SERVER = "http://10.252.2.113:3000/chat";
+  const CHAT_SERVER = "http://IPADDRESS:3000/chat";
 
   // Calculate step goal based on height & weight
   const calculateStepGoal = () => {
