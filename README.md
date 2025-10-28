@@ -7,13 +7,15 @@ We wanted to use emotional incentives to get the user to be more motivated so we
 you gain from getting steps in. Your steps will be taken from your health app.
 
 # Dependencies 
-• Expo Go App
-• iPhone running the latest iOS version
-• A computer to run the code (Mac or Windows)
-• Make sure your iPhone and computer is connect to the same Wi-Fi
+
+• Expo Go App  
+• iPhone running the latest iOS version  
+• A computer to run the code (Mac or Windows)  
+• Make sure your iPhone and computer is connect to the same Wi-Fi  
 
 # Packages to Install 
-• npm install expo-sensors
+
+• npm install expo-sensors  
 • npm install @react-native-async-storage/async-storage
 • npm install expo-router
 • npm install react-native-safe-area-context
@@ -28,11 +30,11 @@ Please Let us know if we are missing any packages!
    Apply the API Key into .env in the step-server folder
 
 For Windows:
-Terminal 1
+Terminal 1<br>
 cd step-server
 node server.js
 
-Terminal 2
+Terminal 2<br>
 cd step-app
 npx expo start --tunnel
 
@@ -47,6 +49,7 @@ npx expo start
 
 # Contributors
 Name + Github
+
 - Wayne Ngo, @Embotic-Wayne
 - Son Nguyen, @songuyen05
 - Ela Aquino, @elaaquino
