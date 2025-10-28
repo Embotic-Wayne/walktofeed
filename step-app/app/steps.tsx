@@ -31,7 +31,8 @@ const SOUND_MAP: Record<string, any> = {
   chicken: require("../assets/sounds/chicken-audio.mp3"),
 };
 
-const SERVER = "http://10.252.2.113:3000/steps";
+// IP Address here --- Make sure your mobile device and computer is connected to same wifi
+const SERVER = "http://IPADDRESS:3000/steps";
 
 export default function Home() {
   const [todaySteps, setTodaySteps] = useState<number>(0);
